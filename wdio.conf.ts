@@ -1,4 +1,5 @@
 import type {Options} from '@wdio/types'
+import allure from "@wdio/allure-reporter";
 
 export const config: Options.Testrunner = {
   //
@@ -241,8 +242,16 @@ export const config: Options.Testrunner = {
    * Hook that gets executed after a hook within the suite starts (e.g. runs after calling
    * afterEach in Mocha)
    */
-  // afterHook: function (test, context, { error, result, duration, passed, retries }) {
-  // },
+  afterHook: async function (test, context, {error, result, duration, passed, retries}) {
+    if (!passed) {
+      const screenShot = await browser.takeScreenshot();
+      const image = new Buffer(screenShot, 'base64');
+      const fileName = `Screenshot - ${test.title.slice(0, 50)}...`;
+
+      allure.addAttachment(fileName, image, 'image/png');
+      console.log(test.error.stack);
+    }
+  },
   /**
    * Function to be executed after a test (in Mocha/Jasmine only)
    * @param {Object}  test             test object
